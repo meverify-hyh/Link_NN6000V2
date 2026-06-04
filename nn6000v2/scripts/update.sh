@@ -50,6 +50,7 @@ main() {
     clone_oaf
     clone_luci_zerotier
     clone_passwall
+    clone_homeproxy
     install_feeds
     update_docker_stack
     remove_tweaked_packages
