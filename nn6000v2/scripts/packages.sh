@@ -298,11 +298,4 @@ clone_luci_zerotier() {
         "${GITHUB_BASE}wzdddyy/luci-app-zerotier.git" \
         "$OPENWRT_PACKAGES_DIR/luci-app-zerotier"
 } 
-clone_homeproxy() {
-    local repo_url="${GITHUB_BASE}douglarek/luci-app-homeproxy.git"
-    local target_dir="$OPENWRT_PACKAGES_DIR/luci-app-homeproxy"
 
-    clone_packages "luci-app-homeproxy" \
-        "$repo_url" \
-        "$target_dir"
-}
