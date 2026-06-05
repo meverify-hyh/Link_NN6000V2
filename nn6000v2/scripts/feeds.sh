@@ -12,7 +12,7 @@ update_feeds() {
         [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
          echo "src-git openwrt_packages https://github.com/kenzok8/openwrt-packages.git" >>"$FEEDS_PATH"
        # echo "src-git myhomeproxy https://github.com/douglarek/luci-app-homeproxy.git" >> "$FEEDS_PATH"
-         echo "src-git openwrt_packages https://github.com/kenzok8/small-package.git" >>"$FEEDS_PATH"
+       # echo "src-git openwrt_packages https://github.com/kenzok8/small-package.git" >>"$FEEDS_PATH"
     fi
     
 
