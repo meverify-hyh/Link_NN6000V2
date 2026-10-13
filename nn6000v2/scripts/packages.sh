@@ -313,15 +313,6 @@ config network 'my'
     option fw_allow_forward '1'
 EOF
 
-    # 配置 zerotier 网桥接口
-    cat >> "$ZT_CONFIG_DIR/network" << 'EOF'
-
-config interface 'zter'
-    option type 'bridge'
-    option ifname 'ztly5t4jdd'
-    option proto 'none'
-    option auto '1'
-EOF
 }
 
 # ---- 锁定 sing-box 版本 ----
