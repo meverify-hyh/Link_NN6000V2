@@ -160,7 +160,7 @@ clone_lucky() {
 
 clone_adguardhome() {
     clone_packages "luci-app-adguardhome" \
-        "${GITHUB_BASE}wzdddyy/luci-app-adguardhome.git" \
+        "${GITHUB_BASE}rufengsuixing/luci-app-adguardhome.git" \
         "$OPENWRT_PACKAGES_DIR/luci-app-adguardhome"
 }
 
@@ -295,7 +295,7 @@ remove_attendedsysupgrade() {
 # ---- 克隆并预配置 zerotier ----
 clone_luci_zerotier() {
     clone_packages "luci-app-zerotier" \
-        "${GITHUB_BASE}wzdddyy/luci-app-zerotier.git" \
+        "${GITHUB_BASE}rufengsuixing/luci-app-zerotier.git" \
         "$OPENWRT_PACKAGES_DIR/luci-app-zerotier"
 
     # 创建预配置文件（直接写入真实 secret）
