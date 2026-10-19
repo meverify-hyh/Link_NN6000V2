@@ -394,7 +394,7 @@ config globals 'globals'
 config device
     option name 'br-lan'
     option type 'bridge'
-    option vlan_filtering '0'
+    option vlan_filtering '1'
     list ports 'lan1'
     list ports 'lan2'
     list ports 'lan3'
