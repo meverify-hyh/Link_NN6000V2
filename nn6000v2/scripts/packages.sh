@@ -3,8 +3,6 @@
 GITHUB_BASE="https://github.com/"
 OPENWRT_PACKAGES_DIR="$BUILD_DIR/feeds/openwrt_packages"
 
-# 官方 feeds 的 020-descr-filter-fix.patch 与 miniupnpd 2.3.11 不兼容（5/7 hunks FAILED），删掉
-rm -f ./feeds/packages/net/miniupnpd/patches/020-descr-filter-fix.patch
 
 update_golang() {
     if [[ -d ./feeds/packages/lang/golang ]]; then

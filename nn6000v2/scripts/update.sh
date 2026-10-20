@@ -31,6 +31,7 @@ main() {
     clean_up
     reset_feeds_conf
     update_feeds
+    rm -f "$BUILD_DIR/feeds/packages/net/miniupnpd/patches/020-descr-filter-fix.patch"
     update_golang
     clone_quickfile
     clone_lucky
