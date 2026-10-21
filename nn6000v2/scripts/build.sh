@@ -176,7 +176,17 @@ if [[ "$Dev" != *"nowifi"* ]]; then
     
     cp -f "$CONFIG_FILE" .config
     make defconfig
-    
+
+    # Force remove legacy iptables (oaf pulls kmod-ipt-conntrack/nat -> kmod-iptables,
+    # which conflicts with nft stack's kmod-nf-ipt providing ip_tables.ko)
+    sed -i 's/^CONFIG_PACKAGE_kmod-iptables=y/# CONFIG_PACKAGE_kmod-iptables is not set/' .config
+    sed -i 's/^CONFIG_PACKAGE_kmod-ipt-core=y/# CONFIG_PACKAGE_kmod-ipt-core is not set/' .config
+    sed -i 's/^CONFIG_PACKAGE_kmod-ipt-conntrack=y/# CONFIG_PACKAGE_kmod-ipt-conntrack is not set/' .config
+    sed -i 's/^CONFIG_PACKAGE_kmod-ipt-nat=y/# CONFIG_PACKAGE_kmod-ipt-nat is not set/' .config
+    sed -i 's/^CONFIG_PACKAGE_kmod-ipt-conntrack-extra=y/# CONFIG_PACKAGE_kmod-ipt-conntrack-extra is not set/' .config
+    sed -i 's/^CONFIG_PACKAGE_kmod-ipt-nat-extra=y/# CONFIG_PACKAGE_kmod-ipt-nat-extra is not set/' .config
+    echo "✓ Force disabled legacy iptables packages"
+
     echo "编译无 WiFi 版本..."
     make -j$(($(nproc) + 1)) || make -j1 V=s
     
