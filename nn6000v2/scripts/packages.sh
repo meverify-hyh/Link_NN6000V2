@@ -188,7 +188,7 @@ clone_oaf() {
     local OAF_DIR="$OPENWRT_PACKAGES_DIR/OpenAppFilter"
     local TEMP_DIR="$OPENWRT_PACKAGES_DIR/oaf-temp"
 
-    (cd "$BUILD_DIR" && ./scripts/feeds install -f kmod-ipt-conntrack kmod-ipt-nat)
+    # removed: oaf iptables dependency causes conflict with nft stack
     
     clone_packages "OpenAppFilter" \
         "$OAF_REPO" \
@@ -201,7 +201,7 @@ clone_oaf() {
 
     local oaf_makefile="$OAF_DIR/oaf/Makefile"
     if [ -f "$oaf_makefile" ] ; then
-        sed -i 's/DEPENDS:=.*oaf/DEPENDS:=+kmod-ipt-conntrack +kmod-ipt-nat/g' "$oaf_makefile"
+        # removed: oaf DEPENDS iptables causes conflict
     fi
 
     local appfilter_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
@@ -395,7 +395,7 @@ config globals 'globals'
 config device
     option name 'br-lan'
     option type 'bridge'
-    option vlan_filtering '1'
+    # option vlan_filtering '1'
     list ports 'lan1'
     list ports 'lan2'
     list ports 'lan3'
