@@ -8,10 +8,10 @@ update_golang() {
     if [[ -d ./feeds/packages/lang/golang ]]; then
         \rm -rf ./feeds/packages/lang/golang
         if ! git clone --depth 1 -b $GOLANG_BRANCH $GOLANG_REPO ./feeds/packages/lang/golang; then
-            echo "错误：克隆 golang 仓库 $GOLANG_REPO 失败" >&2
+            echo "閿欒锛氬厠闅?golang 浠撳簱 $GOLANG_REPO 澶辫触" >&2
             exit 1
         fi
-        echo "✓ golang 软件包更新完成"
+        echo "鉁?golang 杞欢鍖呮洿鏂板畬鎴?
     fi
 }
 
@@ -33,14 +33,14 @@ clone_packages() {
     
     if [ -n "$sparse_pattern" ]; then
         if ! git clone --filter=blob:none --no-checkout "$repo_url" "$target_dir"; then
-            echo "错误：从 $repo_url 克隆 $name 仓库失败" >&2
+            echo "閿欒锛氫粠 $repo_url 鍏嬮殕 $name 浠撳簱澶辫触" >&2
             exit 1
         fi
         
         pushd "$target_dir" >/dev/null
         git sparse-checkout init --cone
         if ! git sparse-checkout set $sparse_pattern; then
-            echo "错误：稀疏检出 $sparse_pattern 失败" >&2
+            echo "閿欒锛氱█鐤忔鍑?$sparse_pattern 澶辫触" >&2
             popd >/dev/null
             return 1
         fi
@@ -53,7 +53,7 @@ clone_packages() {
         fi
     else
         if ! git clone --depth=1 "$repo_url" "$target_dir"; then
-            echo "错误：从 $repo_url 克隆 $name 仓库失败" >&2
+            echo "閿欒锛氫粠 $repo_url 鍏嬮殕 $name 浠撳簱澶辫触" >&2
             exit 1
         fi
     fi
@@ -62,7 +62,7 @@ clone_packages() {
         (cd "$BUILD_DIR" && eval "$post_cmd") || return 1
     fi
     
-    echo "✓ $name 克隆完成"
+    echo "鉁?$name 鍏嬮殕瀹屾垚"
 }
 
 install_openwrt_packages() {
@@ -139,7 +139,7 @@ clone_lucky() {
     local version
     version=$(find "$BASE_PATH/patches" -name "lucky_*.tar.gz" -printf "%f\n" | head -n 1 | sed -n 's/^lucky_\(.*\)_Linux.*$/\1/p')
     if [ -z "$version" ]; then
-        echo "Warning: 未找到 lucky 补丁文件，跳过更新。" >&2
+        echo "Warning: 鏈壘鍒?lucky 琛ヤ竵鏂囦欢锛岃烦杩囨洿鏂般€? >&2
         return 0
     fi
     
@@ -155,7 +155,7 @@ clone_lucky() {
         sed -i "/Build\\/Prepare/a\\$patch_line" "$makefile_path"
         sed -i '/wget/d' "$makefile_path"
     else
-        echo "Warning: lucky Makefile 中未找到 'Build/Prepare'。跳过。" >&2
+        echo "Warning: lucky Makefile 涓湭鎵惧埌 'Build/Prepare'銆傝烦杩囥€? >&2
     fi
 }
 
@@ -199,10 +199,6 @@ clone_oaf() {
 
     rm -rf "$TEMP_DIR"
 
-    local oaf_makefile="$OAF_DIR/oaf/Makefile"
-    if [ -f "$oaf_makefile" ] ; then
-        # removed: oaf DEPENDS iptables causes conflict
-    fi
 
     local appfilter_config="$OAF_DIR/open-app-filter/files/etc/config/appfilter"
     if [ -f "$appfilter_config" ] ; then
@@ -247,11 +243,11 @@ _sync_luci_lib_docker() {
     
     rm -rf "$luci_lib_docker_dir" 2>/dev/null || true
     if ! git clone --depth=1 "$repo_url" "$luci_lib_docker_dir"; then
-        echo "错误：从 $repo_url 克隆 luci-lib-docker 仓库失败" >&2
+        echo "閿欒锛氫粠 $repo_url 鍏嬮殕 luci-lib-docker 浠撳簱澶辫触" >&2
         exit 1
     fi
     
-    echo "✓ luci-lib-docker 克隆完成"
+    echo "鉁?luci-lib-docker 鍏嬮殕瀹屾垚"
 }
 
 clone_dockerman() {
@@ -293,14 +289,14 @@ remove_attendedsysupgrade() {
         fi
     done
 }
-# ---- 克隆并预配置 zerotier ----
+# ---- 鍏嬮殕骞堕閰嶇疆 zerotier ----
 clone_luci_zerotier() {
     clone_packages "luci-app-zerotier" \
         "${GITHUB_BASE}rufengsuixing/luci-app-zerotier.git" \
         "$OPENWRT_PACKAGES_DIR/luci-app-zerotier"
 }
 
-# ---- 锁定 sing-box 版本 ----
+# ---- 閿佸畾 sing-box 鐗堟湰 ----
 clone_singbox() {
     local SINGBOX_DIR="$BUILD_DIR/feeds/packages/net/sing-box"
     local makefile_path="$SINGBOX_DIR/Makefile"
@@ -312,12 +308,11 @@ clone_singbox() {
 
     sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=1.12.19/" "$makefile_path"
     sed -i "s/^PKG_HASH:=.*/PKG_HASH:=e122253d6712c13997b3aba9692dca5fde3e4d0d2aa606fd20913b772fcd147c/" "$makefile_path"
-    echo "✓ sing-box 已锁定到 1.12.19"
+    echo "鉁?sing-box 宸查攣瀹氬埌 1.12.19"
 }
 preset_ssh_key() {
-    local ssh_pubkey="${SSH_PUBKEY:-}"   # 从环境变量读取公钥内容
-    if [ -z "$ssh_pubkey" ]; then
-        echo "⚠️ SSH_PUBKEY 未设置，跳过 SSH 公钥预置" >&2
+    local ssh_pubkey="${SSH_PUBKEY:-}"   # 浠庣幆澧冨彉閲忚鍙栧叕閽ュ唴瀹?    if [ -z "$ssh_pubkey" ]; then
+        echo "鈿狅笍 SSH_PUBKEY 鏈缃紝璺宠繃 SSH 鍏挜棰勭疆" >&2
         return 0
     fi
 
@@ -325,21 +320,21 @@ preset_ssh_key() {
     mkdir -p "$key_dir"
     echo "$ssh_pubkey" > "$key_dir/authorized_keys"
     chmod 600 "$key_dir/authorized_keys"
-    echo "✓ SSH 公钥已预置到 $key_dir/authorized_keys"
+    echo "鉁?SSH 鍏挜宸查缃埌 $key_dir/authorized_keys"
 }
 
 mkdir -p "$BUILD_DIR/files/etc/config"
 
-# ---- root 保持空密码（ImmortalWRT 默认，首次登录强制设置密码）----
+# ---- root 淇濇寔绌哄瘑鐮侊紙ImmortalWRT 榛樿锛岄娆＄櫥褰曞己鍒惰缃瘑鐮侊級----
 
-# ---- 去除登录页底部版本信息 ----
+# ---- 鍘婚櫎鐧诲綍椤靛簳閮ㄧ増鏈俊鎭?----
 ARGON_FOOTER=$(find "$BUILD_DIR/feeds" -name "footer_login.ut" -path "*argon*" 2>/dev/null | head -1)
 if [ -n "$ARGON_FOOTER" ]; then
     sed -i '/<footer/,/<\/footer>/d' "$ARGON_FOOTER"
-    echo "✓ 已去除登录页底部版本信息"
+    echo "鉁?宸插幓闄ょ櫥褰曢〉搴曢儴鐗堟湰淇℃伅"
 fi
 
-# ---- 修改系统名称为 Router ----
+# ---- 淇敼绯荤粺鍚嶇О涓?Router ----
 cat > "$BUILD_DIR/files/etc/config/system" << 'EOF'
 config system
     option hostname 'Router'
@@ -363,7 +358,7 @@ config imm_init
     option apk_mirror 'https://mirrors.vsean.net/openwrt'
 EOF
 
-# ---- 配置 lldpd ----
+# ---- 閰嶇疆 lldpd ----
 cat > "$BUILD_DIR/files/etc/config/lldpd" << 'EOF'
 config lldpd 'config'
     option enable_cdp '0'
@@ -381,7 +376,7 @@ config lldpd 'config'
     option lldp_description 'Router'
 EOF
 
-# ---- 预置完整 network 配置 ----
+# ---- 棰勭疆瀹屾暣 network 閰嶇疆 ----
 cat > "$BUILD_DIR/files/etc/config/network" << 'EOF'
 config interface 'loopback'
     option device 'lo'
@@ -413,7 +408,7 @@ config interface 'wan'
     option proto 'dhcp'
 
 EOF
-# ---- 配置 LAN DHCP ----
+# ---- 閰嶇疆 LAN DHCP ----
 cat >> "$BUILD_DIR/files/etc/config/dhcp" << 'EOF'
 
 config dnsmasq
