@@ -255,7 +255,7 @@ _sync_luci_lib_docker() {
 
 clone_dockerman() {
     local path="$OPENWRT_PACKAGES_DIR/luci-app-dockerman"
-    local repo_url="${GITHUB_BASE}wzdddyy/luci-app-dockerman.git"
+    local repo_url="${GITHUB_BASE}lisaac/luci-app-dockerman.git"
     local temp_dir="$OPENWRT_PACKAGES_DIR/dockerman"
     
     _sync_luci_lib_docker || return
