@@ -39,7 +39,6 @@ main() {
     clone_adguardhome
     clone_easytier
     clone_oaf
-    clone_luci_zerotier
     clone_passwall
     install_feeds
     update_docker_stack
@@ -71,6 +70,5 @@ main() {
     install_pbr_isp
     fix_pbr_ip_forward
     fix_quickstart
-    clone_singbox
 }
 main "$@"
