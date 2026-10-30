@@ -74,7 +74,7 @@ Link_NN6000V2/
 
 <div align="center">
 
-![ImmortalWrt](immortalwrt.png)
+![ImmortalWrt](imm.png)
 
 </div>
 ***
