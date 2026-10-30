@@ -126,6 +126,9 @@ modify_kernel_size() {
 modify_kernel_size
 
 cd "$BASE_PATH/../$BUILD_DIR"
+# Override xray-core with project-local package (fix compile issues)
+cp -f "$BASE_PATH/patches/xray-core/Makefile" feeds/openwrt_packages/xray-core/Makefile
+cp -rf "$BASE_PATH/patches/xray-core/files/." feeds/openwrt_packages/xray-core/files/
 make defconfig
 
 if [[ $Build_Mod == "debug" ]]; then
