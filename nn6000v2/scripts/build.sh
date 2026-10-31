@@ -113,9 +113,9 @@ fi
 dedupe_duplicate_packages() {
     local bd="$BASE_PATH/../$BUILD_DIR"
     if [ -d "$bd/feeds/openwrt_packages/xray-core" ] && [ -d "$bd/feeds/packages/net/xray-core" ]; then
-        echo ">>> 移除重复的 openwrt_packages/xray-core（保留 packages feed 的源码版）"
-        rm -rf "$bd/feeds/openwrt_packages/xray-core"
-        rm -rf "$bd/package/feeds/openwrt_packages/xray-core"
+        echo ">>> 移除重复的 packages/net/xray-core（保留 openwrt_packages 项目内覆盖版）"
+        rm -rf "$bd/feeds/packages/net/xray-core"
+        rm -rf "$bd/package/feeds/packages/net/xray-core"
     fi
 }
 "$BASE_PATH/scripts/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"
