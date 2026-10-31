@@ -106,7 +106,21 @@ if [[ -d action_build ]]; then
     BUILD_DIR="action_build"
 fi
 
+# 同名包去重：kenzok8 的 openwrt_packages 与 immortalwrt/packages 都提供 xray-core，
+# 两个同名包会让 make download 直接报
+#   ERROR: package/feeds/openwrt_packages/xray-core failed to build.
+# 这里保留 packages feed 里的源码编译版本，移除 openwrt_packages 里的同名副本。
+dedupe_duplicate_packages() {
+    local bd="$BASE_PATH/../$BUILD_DIR"
+    if [ -d "$bd/feeds/openwrt_packages/xray-core" ] && [ -d "$bd/feeds/packages/net/xray-core" ]; then
+        echo ">>> 移除重复的 openwrt_packages/xray-core（保留 packages feed 的源码版）"
+        rm -rf "$bd/feeds/openwrt_packages/xray-core"
+        rm -rf "$bd/package/feeds/openwrt_packages/xray-core"
+    fi
+}
 "$BASE_PATH/scripts/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"
+
+dedupe_duplicate_packages
 
 apply_config
 fix_netfilter_kmod_clash
