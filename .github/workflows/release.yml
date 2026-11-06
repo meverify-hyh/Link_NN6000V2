@@ -1,5 +1,4 @@
 name: Go_Release
-
 on:
   workflow_dispatch:
     inputs:
@@ -15,14 +14,12 @@ on:
     # 每 7 天编译一次（UTC 时间，北京时间 = UTC+8）
     # UTC 20:00 = 北京时间 04:00
     - cron: '0 20 */7 * *'
-
 env:
   DEVICE_MODEL: link_nn6000v2_immwrt
   REPO_URL: https://github.com/VIKINGYFY/immortalwrt.git
   REPO_BRANCH: main
   BUILD_DIR: imm-nss
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 jobs:
   build:
     permissions:
@@ -32,56 +29,50 @@ jobs:
       matrix:
         os: [ubuntu-24.04]
     runs-on: ${{ matrix.os }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
-
       # ======================= 新增：超级清理 =======================
       - name: 🔥 Ultimate Disk Cleanup
         run: |
           echo "=== Disk Before Cleanup ==="
           df -h
-
           # 1. 删除 Docker 所有内容
           sudo docker system prune -af --volumes 2>/dev/null || true
-
           # 2. 删除所有预装的大型软件（包括 .NET, Android, GHC, Swift, Chrome, Firefox 等）
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost
           sudo rm -rf /opt/hostedtoolcache/CodeQL /usr/local/.ghcup /opt/az /opt/microsoft
           sudo rm -rf /opt/pipx /usr/lib/jvm /usr/local/share/chromium /usr/share/swift
           sudo rm -rf /usr/local/lib/node_modules /opt/google /opt/microsoft/msedge
-
           # 3. 清理 APT 缓存和未使用的包
+          # 注意：不要删除 /var/lib/apt/lists/*。删除后 init_build_environment.sh 里的
+          # apt update 需要全量重新拉取索引，镜像响应慢时会把 Build System Setup
+          # 从 3 分钟拖到 1 小时以上，最终导致 runner 心跳超时（lost communication）。
           sudo apt clean
           sudo apt autoremove -y --purge
-          sudo rm -rf /var/lib/apt/lists/*
-
           # 4. 清理日志
           sudo journalctl --rotate
           sudo journalctl --vacuum-time=1s
-
           # 5. 清理临时文件
           sudo rm -rf /tmp/* /var/tmp/*
-
           echo "=== Disk After Cleanup ==="
           df -h
-
       # ======================= 系统设置 =======================
       - name: Build System Setup
+        timeout-minutes: 40
         run: |
           sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
           sudo -E apt -yqq install dos2unix libfuse-dev
-          # 清理安装产生的缓存
-          sudo apt clean && sudo apt autoremove -y
-
+          # 只清理 apt 下载缓存；不做 autoremove：
+          # autoremove 收尾会触发 libc-bin 的 ldconfig，扫描量大时长时间占满
+          # CPU/IO，导致 runner 与服务器失联（hosted runner lost communication）
+          sudo apt clean || true
       - name: Set Build Date and Timezone
         run: |
           sudo -E timedatectl set-timezone "Asia/Shanghai"
           export BUILD_DATE=$(TZ=UTC-8 date +"%y.%m.%d_%H.%M.%S")
           echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
           echo "BUILD_SRC=${{ env.REPO_URL }}" >> $GITHUB_ENV
-
       - name: Clone Source Code
         run: |
           chmod +x ./nn6000v2/scripts/update.sh
@@ -94,7 +85,6 @@ jobs:
           if [ -f "$PROJECT_MIRRORS_FILE" ]; then
             sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
           fi
-
       # ======================= 缓存（调整 key） =======================
       - name: Restore Build Dependencies Cache
         uses: actions/cache/restore@v5.0.4
@@ -105,7 +95,6 @@ jobs:
           key: ${{ matrix.os }}-build-${{ hashFiles('**/repo_flag') }}
           restore-keys: |
             ${{ matrix.os }}-build-
-
       # 添加 dl/ 目录缓存（独立）
       - name: Cache OpenWrt downloads
         uses: actions/cache@v5.0.4
@@ -115,7 +104,6 @@ jobs:
           key: ${{ matrix.os }}-dl-${{ hashFiles('**/feeds.conf') }}
           restore-keys: |
             ${{ matrix.os }}-dl-
-
       # ======================= 刷新缓存（保持不变） =======================
       - name: Refresh the cache
         run: |
@@ -124,7 +112,6 @@ jobs:
                 find "$dir" -type f -exec touch {} +
             done
           fi
-
       # ======================= 构建（降低并行度，防止瞬间撑爆） =======================
       - name: Build Firmware
         run: |
@@ -149,7 +136,6 @@ jobs:
           else
             echo "⚠️ 未配置 ZEROTIER_SECRET Secret"
           fi
-
           # 执行构建（使用 4 核并行，避免过多临时文件）
           ./nn6000v2/scripts/build.sh ${{ env.DEVICE_MODEL }}
           
@@ -161,12 +147,10 @@ jobs:
           else
             echo "KVER=unknown" >> $GITHUB_ENV
           fi
-
           # ========== 关键：在打包前删除巨大的构建中间目录 ==========
           echo "=== 清理构建中间文件（保留最终固件） ==="
           rm -rf ./action_build/build_dir ./action_build/staging_dir ./action_build/tmp
           df -h
-
       # ======================= 缓存保存（仅保存 ccache，staging_dir 已删除，不存） =======================
       - name: Save Build Dependencies Cache
         uses: actions/cache/save@v5.0.4
@@ -175,7 +159,6 @@ jobs:
             ./action_build/.ccache
             # staging_dir 已被删除，不保存
           key: ${{ matrix.os }}-build-${{ hashFiles('**/repo_flag') }}
-
       # ======================= 清理旧缓存（按需） =======================
       - name: Cleanup Old Cache (optional)
         continue-on-error: true
@@ -185,7 +168,6 @@ jobs:
             echo "Deleting old cache: $key"
             gh cache delete "$key" || true
           done
-
       # ======================= 发布 =======================
       - name: Machine Information
         run: |
@@ -194,7 +176,6 @@ jobs:
           echo "=============================================="
           df -h
           echo "=============================================="
-
       - name: Prepare Release Body
         run: |
           {
@@ -207,7 +188,6 @@ jobs:
             echo "- 密码：无"
             echo "- no_wifi 后缀的版本未包含 WIFI 驱动程序"
           } > release_body.txt
-
       - name: Release Firmware
         uses: softprops/action-gh-release@v3
         with:
@@ -221,7 +201,6 @@ jobs:
             ./firmware/*.ubi
           body_path: ./release_body.txt
           make_latest: true
-
       - name: Cleanup Old Releases & Runs
         continue-on-error: true
         env:
