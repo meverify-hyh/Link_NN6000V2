@@ -24,7 +24,19 @@ GO_PKG_LDFLAGS_X:= \
 	$(GO_PKG)/core.version=$(PKG_VERSION)
 
 include $(INCLUDE_DIR)/package.mk
-include ../../lang/golang/golang-package.mk
+# golang-package.mk 位置随 feed 布局变化，按实际路径探测（xray-core 可能位于
+# feeds/openwrt_packages/xray-core，此时 ../../lang 会解析到不存在的 feeds/lang）
+GOLANG_MK := $(TOPDIR)/feeds/packages/lang/golang/golang-package.mk
+ifeq ($(wildcard $(GOLANG_MK)),)
+GOLANG_MK := $(TOPDIR)/feeds/openwrt_packages/lang/golang/golang-package.mk
+endif
+ifeq ($(wildcard $(GOLANG_MK)),)
+GOLANG_MK := $(TOPDIR)/feeds/openwrt_packages/golang-package.mk
+endif
+ifeq ($(wildcard $(GOLANG_MK)),)
+$(error xray-core: 找不到 golang-package.mk，请检查 feeds 中 golang 包位置)
+endif
+include $(GOLANG_MK)
 
 define Package/xray/template
   TITLE:=A proxy platform to bypass network restrictions
