@@ -59,8 +59,17 @@ jobs:
           df -h
       # ======================= 系统设置 =======================
       - name: Build System Setup
-        timeout-minutes: 40
+        timeout-minutes: 60
         run: |
+          # 全局关闭 apt 的 recommends / suggests。
+          # init 脚本里的 apt install 会顺带拉入 texlive、fonts-lmodern 等
+          # 与 OpenWrt 编译完全无关的重型包，几万个小文件写入会把慢盘 runner
+          # 拖到几十分钟（曾实测卡在 update-ca-certificates 超过 20 分钟）。
+          sudo tee /etc/apt/apt.conf.d/99-ci-norecommends >/dev/null <<'EOF'
+          APT::Install-Recommends "false";
+          APT::Install-Suggests "false";
+          APT::Get::Assume-Yes "true";
+          EOF
           sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
           sudo -E apt -yqq install dos2unix libfuse-dev
           # 只清理 apt 下载缓存；不做 autoremove：
