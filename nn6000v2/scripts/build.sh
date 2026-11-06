@@ -139,10 +139,48 @@ modify_kernel_size() {
 
 modify_kernel_size
 
+# 预下载 xray-core 源码到 dl/，规避 codeload 瞬时失败让 make download 中断
+prefetch_xray_core() {
+    local dl_dir="dl"
+    local f="$dl_dir/xray-core-26.10.21.tar.gz"
+    local sha="44ef4874529a03848c90f1fdcfb763350fbc5f1de741ec90e0024d651df25650"
+    mkdir -p "$dl_dir"
+    if [ -f "$f" ] && echo "$sha  $f" | sha256sum -c - >/dev/null 2>&1; then
+        echo ">>> xray-core 源码已在 dl 缓存中，跳过下载"
+        return 0
+    fi
+    for i in 1 2 3 4 5; do
+        echo ">>> 预下载 xray-core 26.10.21 (尝试 $i/5)"
+        if curl -fL --retry 3 --retry-delay 5 --connect-timeout 20 -o "$f.part" \
+            "https://codeload.github.com/XTLS/Xray-core/tar.gz/v26.10.21"; then
+            mv -f "$f.part" "$f"
+            if echo "$sha  $f" | sha256sum -c - >/dev/null 2>&1; then
+                echo ">>> xray-core 预下载完成，SHA256 校验通过"
+                return 0
+            fi
+            echo ">>> xray-core SHA256 校验失败，删除后重试"
+            rm -f "$f"
+        fi
+        sleep 10
+    done
+    echo ">>> 警告：xray-core 预下载失败，交由 make download 处理"
+    return 0
+}
+
 cd "$BASE_PATH/../$BUILD_DIR"
+
 # Override xray-core with project-local package (fix compile issues)
-cp -f "$BASE_PATH/patches/xray-core/Makefile" feeds/openwrt_packages/xray-core/Makefile
-cp -rf "$BASE_PATH/patches/xray-core/files/." feeds/openwrt_packages/xray-core/files/
+XRAY_DIR="feeds/openwrt_packages/xray-core"
+if [ -d "$XRAY_DIR" ]; then
+    cp -f "$BASE_PATH/patches/xray-core/Makefile" "$XRAY_DIR/Makefile" || echo ">>> 警告：覆盖 xray-core Makefile 失败"
+    mkdir -p "$XRAY_DIR/files"
+    cp -rf "$BASE_PATH/patches/xray-core/files/." "$XRAY_DIR/files/" || echo ">>> 警告：复制 xray-core files 失败"
+    echo ">>> 已覆盖 xray-core Makefile，golang include 行："
+    grep -m1 'GOLANG_MK :=' "$XRAY_DIR/Makefile" 2>/dev/null || echo ">>> 警告：未在覆盖后的 Makefile 中找到 GOLANG_MK"
+else
+    echo ">>> 警告：$XRAY_DIR 不存在，跳过 xray-core 覆盖"
+fi
+
 make defconfig
 
 if [[ $Build_Mod == "debug" ]]; then
@@ -155,6 +193,7 @@ if [[ -d $TARGET_DIR && "$Dev" != *"nowifi"* ]]; then
 fi
 
 if [[ "$Dev" != *"nowifi"* ]]; then
+    prefetch_xray_core
     make download -j$(($(nproc) * 2))
     make -j$(($(nproc) + 1)) || make -j1 V=s
 fi
