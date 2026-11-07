@@ -76,6 +76,26 @@ jobs:
           # autoremove 收尾会触发 libc-bin 的 ldconfig，扫描量大时长时间占满
           # CPU/IO，导致 runner 与服务器失联（hosted runner lost communication）
           sudo apt clean || true
+      # ======================= 构建资源（swap / 诊断） =======================
+      - name: Prepare Build Resources
+        run: |
+          echo "=== Memory / Disk Before Build ==="
+          free -h || true
+          df -h /
+          # Go 1.27 的 golang 包需要在本机重新 bootstrap host 工具链，
+          # 叠加并行 make 后峰值内存会逼近甚至超过 16G 物理内存。
+          # 一旦 OOM，runner agent 会被杀，表现为
+          # "The hosted runner lost communication with the server"（#116 即此现象）。
+          if [ ! -f /swapfile ]; then
+            sudo fallocate -l 4G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=4096
+            sudo chmod 600 /swapfile
+            sudo mkswap /swapfile
+            sudo swapon /swapfile
+          fi
+          echo "=== Memory After Swap ==="
+          free -h
+          swapon --show || true
+          df -h /
       - name: Set Build Date and Timezone
         run: |
           sudo -E timedatectl set-timezone "Asia/Shanghai"
